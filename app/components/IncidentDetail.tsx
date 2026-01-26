@@ -6,15 +6,24 @@ import { useRouter } from 'next/navigation';
 import { SeverityBadge } from './SeverityBadge';
 import { API_ENDPOINTS } from '@/config/api';
 
+interface Event {
+  id: string;
+  source: string;
+  title: string;
+  stack_trace?: string;
+  severity: string;
+  metadata?: Record<string, any>;
+  created_at: string;
+}
+
 interface Incident {
   id: string;
-  service: string;
-  environment: string;
+  title: string;
   severity: string;
-  message: string;
-  stacktrace: string;
-  incident_metadata: Record<string, any>;
+  status: string;
   created_at: string;
+  summary?: string;
+  events: Event[];
 }
 
 interface IncidentDetailProps {
@@ -27,6 +36,7 @@ export function IncidentDetail({ incidentId }: IncidentDetailProps) {
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
+  const [generatingPostmortem, setGeneratingPostmortem] = useState(false);
 
   // Fetch incident details
   useEffect(() => {
@@ -86,24 +96,30 @@ export function IncidentDetail({ incidentId }: IncidentDetailProps) {
     });
   };
 
-  const formatDuration = () => {
-    // For now, just show relative time
-    const seconds = Math.floor((Date.now() - new Date(incident.created_at).getTime()) / 1000);
-    if (seconds < 60) return `${seconds} seconds`;
-    if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes`;
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours}h ${minutes}m`;
-  };
+  const handleGeneratePostmortem = async () => {
+    setGeneratingPostmortem(true);
+    try {
+      const response = await fetch(API_ENDPOINTS.generatePostmortem(incidentId), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-  // Create a single event from the incident
-  const event = {
-    id: incident.id,
-    timestamp: incident.created_at,
-    severity: incident.severity,
-    service: incident.service,
-    message: incident.message,
-    stackTrace: incident.stacktrace,
+      if (response.ok) {
+        const data = await response.json();
+        // Navigate to postmortem detail page
+        router.push(`/postmortems/${data.id}`);
+      } else {
+        console.error('Failed to generate postmortem');
+        alert('Failed to generate postmortem. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error generating postmortem:', error);
+      alert('Error generating postmortem. Please try again.');
+    } finally {
+      setGeneratingPostmortem(false);
+    }
   };
 
   return (
@@ -134,7 +150,7 @@ export function IncidentDetail({ incidentId }: IncidentDetailProps) {
 
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
-              <h1 className="text-2xl font-semibold mb-3">{incident.message || 'Untitled Incident'}</h1>
+              <h1 className="text-2xl font-semibold mb-3">{incident.title || 'Untitled Incident'}</h1>
               <div className="flex items-center gap-2">
                 <SeverityBadge severity={incident.severity} />
                 <span
@@ -145,50 +161,62 @@ export function IncidentDetail({ incidentId }: IncidentDetailProps) {
                     borderColor: 'var(--color-info-border)',
                   }}
                 >
-                  ongoing
+                  {incident.status}
                 </span>
               </div>
             </div>
 
             <div className="flex gap-2">
               <button
-                onClick={() => router.push(`/postmortems?incidentId=${incidentId}`)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors"
+                onClick={handleGeneratePostmortem}
+                disabled={generatingPostmortem}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
                   backgroundColor: 'var(--color-accent)',
                   color: 'white',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
+                  if (!generatingPostmortem) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
+                  }
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'var(--color-accent)';
                 }}
               >
-                <FileText size={16} />
-                Generate Postmortem
+                <FileText size={14} />
+                {generatingPostmortem ? 'Generating...' : 'Generate Postmortem'}
               </button>
-              <button 
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors border"
-                style={{
-                  backgroundColor: 'var(--color-bg-tertiary)',
-                  borderColor: 'var(--color-border-primary)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
-                }}
-              >
-                <CheckCircle size={16} />
-                Mark Resolved
-              </button>
+              {incident.status.toLowerCase() !== 'resolved' && (
+                <button 
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border"
+                  style={{
+                    backgroundColor: 'var(--color-bg-tertiary)',
+                    borderColor: 'var(--color-border-primary)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
+                  }}
+                >
+                  <CheckCircle size={14} />
+                  Mark Resolved
+                </button>
+              )}
             </div>
           </div>
 
+          {/* Summary */}
+          {incident.summary && (
+            <div className="mb-4">
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{incident.summary}</p>
+            </div>
+          )}
+
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div 
               className="rounded-lg p-3 border"
               style={{
@@ -197,7 +225,7 @@ export function IncidentDetail({ incidentId }: IncidentDetailProps) {
               }}
             >
               <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Event Count</p>
-              <p className="text-xl font-semibold">1</p>
+              <p className="text-xl font-semibold">{incident.events?.length || 0}</p>
             </div>
             <div 
               className="rounded-lg p-3 border"
@@ -206,28 +234,8 @@ export function IncidentDetail({ incidentId }: IncidentDetailProps) {
                 borderColor: 'var(--color-border-primary)',
               }}
             >
-              <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Duration</p>
-              <p className="text-xl font-semibold">{formatDuration()}</p>
-            </div>
-            <div 
-              className="rounded-lg p-3 border"
-              style={{
-                backgroundColor: 'var(--color-bg-tertiary)',
-                borderColor: 'var(--color-border-primary)',
-              }}
-            >
-              <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Service</p>
-              <p className="text-sm font-mono">{incident.service}</p>
-            </div>
-            <div 
-              className="rounded-lg p-3 border"
-              style={{
-                backgroundColor: 'var(--color-bg-tertiary)',
-                borderColor: 'var(--color-border-primary)',
-              }}
-            >
-              <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>First Seen</p>
-              <p className="text-sm">{new Date(incident.created_at).toLocaleDateString()}</p>
+              <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Created</p>
+              <p className="text-sm">{new Date(incident.created_at).toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -240,65 +248,75 @@ export function IncidentDetail({ incidentId }: IncidentDetailProps) {
             {/* Event Timeline */}
             <div className="col-span-2 space-y-6">
               <div>
-                <h2 className="font-semibold mb-4">Event Timeline</h2>
+                <h2 className="font-semibold mb-4">Related Events</h2>
                 <div className="space-y-3">
-                  <div
-                    className="rounded-lg overflow-hidden border"
-                    style={{
-                      backgroundColor: 'var(--color-bg-secondary)',
-                      borderColor: 'var(--color-border-primary)',
-                    }}
-                  >
-                    <button
-                      onClick={() => toggleEventExpansion(event.id)}
-                      className="w-full p-4 flex items-start gap-3 transition-colors text-left border-0"
-                      style={{ backgroundColor: 'transparent' }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }}
-                    >
-                      {expandedEvents.has(event.id) ? (
-                        <ChevronDown size={20} style={{ color: 'var(--color-text-secondary)' }} className="mt-0.5" />
-                      ) : (
-                        <ChevronRight size={20} style={{ color: 'var(--color-text-secondary)' }} className="mt-0.5" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-mono" style={{ color: 'var(--color-text-tertiary)' }}>
-                            {formatTimestamp(event.timestamp)}
-                          </span>
-                          <SeverityBadge severity={event.severity} showIcon={false} />
-                        </div>
-                        <p className="text-sm">{event.message}</p>
-                      </div>
-                    </button>
-
-                    {expandedEvents.has(event.id) && event.stackTrace && (
-                      <div 
-                        className="px-4 pb-4 pt-4 border-t"
+                  {incident.events && incident.events.length > 0 ? (
+                    incident.events.map((event) => (
+                      <div
+                        key={event.id}
+                        className="rounded-lg overflow-hidden border"
                         style={{
-                          backgroundColor: 'var(--color-bg-primary)',
-                          borderTopColor: 'var(--color-border-primary)',
+                          backgroundColor: 'var(--color-bg-secondary)',
+                          borderColor: 'var(--color-border-primary)',
                         }}
                       >
-                        <p className="text-xs font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                          Stack Trace
-                        </p>
-                        <pre 
-                          className="text-xs font-mono rounded p-3 overflow-x-auto border"
-                          style={{
-                            backgroundColor: 'var(--color-bg-secondary)',
-                            borderColor: 'var(--color-border-primary)',
+                        <button
+                          onClick={() => toggleEventExpansion(event.id)}
+                          className="w-full p-4 flex items-start gap-3 transition-colors text-left border-0"
+                          style={{ backgroundColor: 'transparent' }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
                           }}
                         >
-                          {event.stackTrace}
-                        </pre>
+                          {expandedEvents.has(event.id) ? (
+                            <ChevronDown size={20} style={{ color: 'var(--color-text-secondary)' }} className="mt-0.5" />
+                          ) : (
+                            <ChevronRight size={20} style={{ color: 'var(--color-text-secondary)' }} className="mt-0.5" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-mono" style={{ color: 'var(--color-text-tertiary)' }}>
+                                {formatTimestamp(event.created_at)}
+                              </span>
+                              <SeverityBadge severity={event.severity} showIcon={false} />
+                              <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                                {event.source}
+                              </span>
+                            </div>
+                            <p className="text-sm">{event.title}</p>
+                          </div>
+                        </button>
+
+                        {expandedEvents.has(event.id) && event.stack_trace && (
+                          <div 
+                            className="px-4 pb-4 pt-4 border-t"
+                            style={{
+                              backgroundColor: 'var(--color-bg-primary)',
+                              borderTopColor: 'var(--color-border-primary)',
+                            }}
+                          >
+                            <p className="text-xs font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                              Stack Trace
+                            </p>
+                            <pre 
+                              className="text-xs font-mono rounded p-3 overflow-x-auto border"
+                              style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                borderColor: 'var(--color-border-primary)',
+                              }}
+                            >
+                              {event.stack_trace}
+                            </pre>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    ))
+                  ) : (
+                    <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>No events available</p>
+                  )}
                 </div>
               </div>
 
@@ -318,48 +336,6 @@ export function IncidentDetail({ incidentId }: IncidentDetailProps) {
               </div>
             </div>
 
-            {/* Context Panel */}
-            <div className="space-y-6">
-              <div>
-                <h2 className="font-semibold mb-3">Context</h2>
-
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-xs font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                      Affected Services
-                    </p>
-                    <div className="space-y-1">
-                      <div
-                        className="text-xs font-mono px-2 py-1.5 rounded border"
-                        style={{
-                          backgroundColor: 'var(--color-bg-tertiary)',
-                          borderColor: 'var(--color-border-primary)',
-                        }}
-                      >
-                        {incident.service}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                      Environment
-                    </p>
-                    <div className="space-y-1">
-                      <div
-                        className="text-xs font-mono px-2 py-1.5 rounded border"
-                        style={{
-                          backgroundColor: 'var(--color-bg-tertiary)',
-                          borderColor: 'var(--color-border-primary)',
-                        }}
-                      >
-                        {incident.environment}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

@@ -6,13 +6,12 @@ import { SeverityBadge } from './SeverityBadge';
 
 interface Event {
   id: string;
-  timestamp: string;
+  source: string;
+  title: string;
+  stack_trace?: string;
   severity: string;
-  service: string;
-  message: string;
-  stackTrace?: string;
   metadata?: Record<string, any>;
-  environment?: string;
+  created_at: string;
 }
 
 interface EventDrawerProps {
@@ -59,7 +58,7 @@ export function EventDrawer({ event, onClose }: EventDrawerProps) {
           <div>
             <h2 className="text-lg font-semibold mb-2">Event Details</h2>
             <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              {formatTimestamp(event.timestamp)}
+              {formatTimestamp(event.created_at)}
             </p>
           </div>
           <button
@@ -89,22 +88,7 @@ export function EventDrawer({ event, onClose }: EventDrawerProps) {
 
           <div>
             <label className="block text-xs font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-              Service
-            </label>
-            <p 
-              className="text-sm font-mono px-3 py-2 rounded-lg border"
-              style={{
-                backgroundColor: 'var(--color-bg-tertiary)',
-                borderColor: 'var(--color-border-primary)',
-              }}
-            >
-              {event.service}
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-              Message
+              Title
             </label>
             <p 
               className="text-sm px-3 py-2 rounded-lg border"
@@ -113,12 +97,27 @@ export function EventDrawer({ event, onClose }: EventDrawerProps) {
                 borderColor: 'var(--color-border-primary)',
               }}
             >
-              {event.message}
+              {event.title}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+              Source
+            </label>
+            <p 
+              className="text-sm font-mono px-3 py-2 rounded-lg border"
+              style={{
+                backgroundColor: 'var(--color-bg-tertiary)',
+                borderColor: 'var(--color-border-primary)',
+              }}
+            >
+              {event.source}
             </p>
           </div>
 
           {/* Stack Trace */}
-          {event.stackTrace && (
+          {event.stack_trace && (
             <div>
               <button
                 onClick={() => setShowStackTrace(!showStackTrace)}
@@ -142,7 +141,7 @@ export function EventDrawer({ event, onClose }: EventDrawerProps) {
                     borderColor: 'var(--color-border-primary)',
                   }}
                 >
-                  {event.stackTrace}
+                  {event.stack_trace}
                 </pre>
               )}
             </div>

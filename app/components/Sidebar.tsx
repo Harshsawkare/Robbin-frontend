@@ -1,9 +1,10 @@
 'use client';
 
-import { Activity, FileText, Flame, Settings as SettingsIcon, Menu, ChevronLeft, Zap } from 'lucide-react';
+import { Activity, FileText, Flame, Menu, ChevronLeft } from 'lucide-react';
+// import { Settings as SettingsIcon } from 'lucide-react'; // Disabled for now
 import { usePathname, useRouter } from 'next/navigation';
 
-type View = 'feed' | 'incidents' | 'incident-detail' | 'postmortems' | 'drills' | 'settings';
+type View = 'feed' | 'incidents' | 'incident-detail' | 'postmortems'; // | 'settings'; // Disabled for now
 
 interface SidebarProps {
   collapsed: boolean;
@@ -18,7 +19,6 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     { id: 'feed' as View, label: 'Live Feed', icon: Activity, path: '/' },
     { id: 'incidents' as View, label: 'Incidents', icon: Flame, path: '/incidents' },
     { id: 'postmortems' as View, label: 'Postmortems', icon: FileText, path: '/postmortems' },
-    { id: 'drills' as View, label: 'Drills', icon: Zap, path: '/drills' },
   ];
 
   const isActive = (path: string) => {
@@ -43,12 +43,12 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       }}
     >
       {/* Header */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-[--color-border-primary]">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-[grey]">
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[--color-accent] rounded-lg flex items-center justify-center">
+            {/* <div className="w-8 h-8 bg-[--color-accent] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">R</span>
-            </div>
+            </div> */}
             <span className="font-semibold text-lg">Robbin</span>
           </div>
         )}
@@ -69,8 +69,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       </div>
 
       {/* Project Selector */}
-      {!collapsed && (
-        <div className="px-4 py-3 border-b border-[--color-border-primary]">
+      {/* {!collapsed && (
+        <div className="px-4 py-3 border-b border-[grey]">
           <select 
             className="w-full px-3 py-2 bg-[--color-bg-tertiary] border border-[--color-border-primary] rounded-lg text-sm focus:outline-none focus:ring-2"
             style={{
@@ -83,7 +83,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             <option>Development</option>
           </select>
         </div>
-      )}
+      )} */}
 
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1">
@@ -123,8 +123,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         })}
       </nav>
 
-      {/* Settings */}
-      <div className="p-3 border-t border-[--color-border-primary]">
+      {/* Settings - Disabled for now */}
+      {/* <div className="p-3 border-t border-[--color-border-primary]">
         <button
           onClick={() => handleNavigation('/settings')}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors`}
@@ -149,7 +149,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           <SettingsIcon size={20} />
           {!collapsed && <span className="text-sm">Settings</span>}
         </button>
-      </div>
+      </div> */}
     </aside>
   );
 }

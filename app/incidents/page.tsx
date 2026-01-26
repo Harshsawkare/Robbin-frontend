@@ -4,23 +4,19 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { API_ENDPOINTS } from '@/config/api';
 import { SeverityBadge } from '@/app/components/SeverityBadge';
-import { Clock, Activity } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 interface Incident {
   id: string;
-  service: string;
-  environment: string;
+  title: string;
   severity: string;
-  message: string;
-  stacktrace: string;
-  incident_metadata: Record<string, any>;
+  status: string;
   created_at: string;
 }
 
 async function fetchIncidents(): Promise<Incident[]> {
   try {
-    const url = `${API_ENDPOINTS.incidents}?skip=0&limit=100`;
-    const response = await fetch(url, {
+    const response = await fetch(API_ENDPOINTS.incidents, {
       cache: 'no-store',
     });
 
@@ -45,9 +41,13 @@ function formatRelativeTime(timestamp: string): string {
   return `${Math.floor(seconds / 86400)}d ago`;
 }
 
+type FilterType = 'all' | 'open' | 'resolved';
+
 export default function IncidentsPage() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [loading, setLoading] = useState(true);
   const [newIncidentIds, setNewIncidentIds] = useState<Set<string>>(new Set());
+  const [filter, setFilter] = useState<FilterType>('all');
   const previousIncidentIdsRef = useRef<Set<string>>(new Set());
 
   // Initial fetch and polling
@@ -55,6 +55,7 @@ export default function IncidentsPage() {
     // Initial fetch
     fetchIncidents().then((data) => {
       setIncidents(data);
+      setLoading(false);
       previousIncidentIdsRef.current = new Set(data.map((inc) => inc.id));
     });
 
@@ -107,28 +108,98 @@ export default function IncidentsPage() {
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
+  // Filter incidents based on selected filter
+  const filteredIncidents = sortedIncidents.filter((incident) => {
+    if (filter === 'all') return true;
+    if (filter === 'resolved') {
+      return incident.status.toLowerCase() === 'resolved';
+    }
+    if (filter === 'open') {
+      return incident.status.toLowerCase() !== 'resolved';
+    }
+    return true;
+  });
+
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-primary)' }}>
       {/* Header */}
       <div style={{ backgroundColor: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border-primary)' }} className="p-6">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-semibold mb-1">Incidents</h1>
-          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-            Grouped failures and patterns • {sortedIncidents.length} total
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold mb-1">Incidents</h1>
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                Grouped failures and patterns • {filteredIncidents.length} {filter !== 'all' ? `${filter}` : 'total'}
+              </p>
+            </div>
+            {/* Filter Buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setFilter('all')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  filter === 'all'
+                    ? 'text-white'
+                    : 'hover:opacity-80'
+                }`}
+                style={{
+                  backgroundColor: filter === 'all' ? 'var(--color-primary)' : 'transparent',
+                  color: filter === 'all' ? 'white' : 'var(--color-text-primary)',
+                  border: filter === 'all' ? 'none' : '1px solid var(--color-border-primary)',
+                }}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setFilter('open')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  filter === 'open'
+                    ? 'text-white'
+                    : 'hover:opacity-80'
+                }`}
+                style={{
+                  backgroundColor: filter === 'open' ? 'var(--color-primary)' : 'transparent',
+                  color: filter === 'open' ? 'white' : 'var(--color-text-primary)',
+                  border: filter === 'open' ? 'none' : '1px solid var(--color-border-primary)',
+                }}
+              >
+                Open
+              </button>
+              <button
+                onClick={() => setFilter('resolved')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  filter === 'resolved'
+                    ? 'text-white'
+                    : 'hover:opacity-80'
+                }`}
+                style={{
+                  backgroundColor: filter === 'resolved' ? 'var(--color-primary)' : 'transparent',
+                  color: filter === 'resolved' ? 'white' : 'var(--color-text-primary)',
+                  border: filter === 'resolved' ? 'none' : '1px solid var(--color-border-primary)',
+                }}
+              >
+                Resolved
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Incidents Grid */}
       <div className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto p-6">
-          {sortedIncidents.length === 0 ? (
+          {loading ? (
             <div style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }} className="rounded-xl p-8 text-center">
-              <p style={{ color: 'var(--color-text-secondary)' }}>No incidents found</p>
+              <p style={{ color: 'var(--color-text-secondary)' }}>Loading incidents...</p>
+            </div>
+          ) : filteredIncidents.length === 0 ? (
+            <div style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }} className="rounded-xl p-8 text-center">
+              <p style={{ color: 'var(--color-text-secondary)' }}>
+                {filter === 'all' ? 'No incidents yet' : `No ${filter} incidents`}
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {sortedIncidents.map((incident) => {
+              {filteredIncidents.map((incident) => {
                 const isNew = newIncidentIds.has(incident.id);
                 return (
                   <Link
@@ -151,7 +222,7 @@ export default function IncidentsPage() {
                             color: 'var(--color-text-primary)',
                           }}
                         >
-                          {incident.message || 'Untitled Incident'}
+                          {incident.title || 'Untitled Incident'}
                         </h3>
                         <div className="flex items-center gap-2">
                           <SeverityBadge severity={incident.severity} showIcon={false} />
@@ -163,43 +234,16 @@ export default function IncidentsPage() {
                               borderColor: 'var(--color-info-border)',
                             }}
                           >
-                            {incident.environment}
+                            {incident.status}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Service */}
-                    <div className="mb-4">
-                      <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Service:</span>
-                      <p className="text-sm font-mono mt-0.5" style={{ color: 'var(--color-text-primary)' }}>{incident.service}</p>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <div className="flex items-center gap-1.5 text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>
-                          <Activity size={12} />
-                          Event Count
-                        </div>
-                        <p className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>1</p>
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5 text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>
-                          <Clock size={12} />
-                          Created
-                        </div>
-                        <p className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
-                          {formatRelativeTime(incident.created_at)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Timeline */}
-                    <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-                      <span>First seen {formatRelativeTime(incident.created_at)}</span>
-                      <span>•</span>
-                      <span>Last seen {formatRelativeTime(incident.created_at)}</span>
+                    {/* Created Time */}
+                    <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                      <Clock size={12} />
+                      <span>Created {formatRelativeTime(incident.created_at)}</span>
                     </div>
                   </Link>
                 );
