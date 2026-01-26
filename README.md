@@ -1,141 +1,127 @@
-# Robbin Frontend - Incident Management System
+# 🧠 Robbin – AI-Powered Incident Analysis & Post-Mortem Generator (Prototype)
 
-A Next.js application for tracking and managing incidents with a clean, modern UI.
+Robbin is an early-stage, local-first incident intelligence platform that helps developers understand logs, group related failures into incidents, and generate structured post-mortems using LLMs.
 
-## Features
+This repository contains two separate applications:
 
-- ✅ **Next.js 16** with App Router
-- ✅ **Tailwind CSS** for styling
-- ✅ **TypeScript** for type safety
-- ✅ **Server-side rendering** for optimal performance
-- ✅ **Incidents page** with table display
-- ✅ **Automatic sorting** (newest first)
-- ✅ **Mock API** for testing
+- **Frontend** – a dashboard to view logs, incidents, and post-mortems
+- **Backend** – APIs to ingest events, create incidents, and generate post-mortems
 
-## Getting Started
+<img width="4386" height="1409" alt="Robbin" src="https://github.com/user-attachments/assets/fba6aa39-add8-4e96-a20d-68bce4c94471" />
 
-### Configure Backend URL
+## ⚠️ Important:
+This is a very prototype built to showcase the core idea, UX flow, and system design.
+The application currently runs entirely locally and uses SQLite with dummy data.
+As soon as a user adds their own OpenAI API key, the LLM-powered features can be activated.
 
-1. Copy the example environment file:
-```bash
-cp .env.example .env.local
+## 🚀 What Problem Does Robbin Solve?
+Modern systems generate huge volumes of logs, but:
+- Engineers still manually correlate errors
+- Incident timelines are reconstructed by hand
+- Post-mortems are time-consuming and inconsistent
+
+Robbin explores a future where:
+- Logs automatically cluster into incidents
+- LLMs help reason over stack traces
+- Post-mortems are generated, structured, and exportable
+
+## 🧩 High-Level Architecture
+```
+Frontend (Dashboard)
+   ↓ REST APIs
+Backend (Event, Incident & Post-Mortem APIs)
+   ↓
+Local SQLite Database
+   ↓
+LLM (via user-provided API key)
 ```
 
-2. Update `.env.local` with your backend URL:
-```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
-```
+- Frontend and backend are fully decoupled
+- No cloud DB or third-party storage (yet)
+- All data lives locally on the user's machine
 
-### Development Server
+## 🔐 LLM Usage & API Keys
+1. No API keys are hardcoded
+2. Users provide their own OpenAI API key
+3. Once attached:
+   - Incident extraction
+   - Log correlation
+   - Post-mortem generation can be powered by a real LLM
 
-```bash
-npm run dev
-```
+## 🧪 Current State of the Project
+✅ Fully working frontend
+✅ Fully working backend APIs
+✅ End-to-end flow with dummy data
+❌ No production LLM calls yet
+❌ No cloud hosting yet
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+This project is raw by design — the goal is to demonstrate:
+- System thinking
+- UX for incident workflows
+- Clean separation of concerns
+- LLM-first product architecture
 
-### View Incidents
+## 🖥️ Frontend Overview
+- **Live Feed**: Real-time logs (info, warning, error) with pause/resume and expandable details.
+- **Incidents**: Automatically grouped warning/error logs into open and closed incidents using LLM-based logic (currently mocked).
+- **Post-Mortems**: LLM-generated incident reports with summaries, timelines, root cause, action items, and prevention steps. Exportable and re-generatable.
 
-Navigate to [http://localhost:3000/incidents](http://localhost:3000/incidents) to see the incidents list.
+## 🌱 Future Scope
+- Integrations with tools like Sentry and Datadog
+- Cloud-hosted backend with multi-project support
+- Smarter LLM-driven incident correlation and root-cause analysis
+- Team collaboration, analytics, and incident insights
 
-## Project Structure
+## 🏃 Running the Frontend
 
-```
-robbin-frontend/
-├── app/
-│   ├── incidents/
-│   │   └── page.tsx              # Incidents page with table UI
-│   ├── layout.tsx                # Root layout
-│   ├── page.tsx                  # Homepage
-│   └── globals.css               # Global styles
-├── config/
-│   └── api.ts                    # API configuration & base URL
-├── .env.example                  # Environment variables template
-├── .env.local                    # Local environment variables (not committed)
-├── package.json
-└── README.md
-```
+### Prerequisites
+- Node.js (v18 or higher recommended)
+- npm or yarn package manager
+- Backend server running (see backend repository for setup instructions)
 
-## API Configuration
+### Installation & Running
 
-### Backend URL Setup
-
-The backend URL is configured using environment variables:
-
-**Location:** `config/api.ts`
-
-```typescript
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-```
-
-### Environment Variables
-
-1. **Development:** Set in `.env.local`
-   ```env
-   NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+1. **Clone the repository** (if you haven't already)
+   ```bash
+   git clone <repository-url>
+   cd robbin-frontend
    ```
 
-2. **Production:** Set in your deployment platform
-   - Vercel: Project Settings → Environment Variables
-   - Other platforms: Add `NEXT_PUBLIC_API_BASE_URL` environment variable
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-### Incident Data Structure
+3. **Configure the backend API URL** (optional)
+   - Create a `.env.local` file in the root directory
+   - Add the following line (adjust the URL if your backend runs on a different port):
+     ```
+     NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+     ```
+   - If not set, the frontend will default to `http://localhost:8000`
 
-```typescript
-interface Incident {
-  id: string;                           // UUID
-  service: string;                      // Service name
-  environment: string;                  // production, staging, development
-  severity: string;                     // error, warning, info, etc.
-  message: string;                      // Error message
-  stacktrace: string;                   // Full stacktrace
-  incident_metadata: Record<string, any>; // Additional metadata
-  created_at: string;                   // ISO timestamp
-}
-```
+4. **Start the development server**
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
 
-### API Endpoints
+5. **Open your browser**
+   - Navigate to [http://localhost:3000](http://localhost:3000)
+   - The frontend should now be running and connected to your backend
 
-The app uses the following endpoints:
+### Available Scripts
 
-1. **GET /api/ingest/incidents** - List all incidents
-   - Query parameters:
-     - `skip` - Number to skip for pagination (default: 0)
-     - `limit` - Max results to return (default: 100, max: 1000)
-     - `service` - Filter by service name (optional)
-     - `environment` - Filter by environment (optional)
-     - `severity` - Filter by severity level (optional)
-   - Returns incidents sorted by `created_at` descending (newest first)
+- `npm run dev` - Start the development server (runs on port 3000 by default)
+- `npm run build` - Build the production-ready application
+- `npm run start` - Start the production server (requires build first)
+- `npm run lint` - Run ESLint to check for code issues
 
-2. **GET /api/ingest/incidents/{incident_id}** - Get specific incident
-   - Retrieves a single incident by its UUID
-   - Returns 404 if incident not found
+### Troubleshooting
 
-## Features
-
-### Incidents Page
-
-- **Table view** with responsive design
-- **Color-coded status badges**:
-  - 🟢 Resolved (green)
-  - 🟡 Investigating (yellow)
-  - 🔴 Active/Open (red)
-- **Severity indicators**:
-  - 🔴 Critical/High
-  - 🟠 Medium
-  - 🔵 Low
-- **Automatic sorting** by creation date (newest first)
-- **Empty state** when no incidents found
-- **Hover effects** for better UX
-
-## Building for Production
-
-```bash
-npm run build
-npm start
-```
-
-## Learn More
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- **Connection issues**: Make sure your backend server is running on the port specified in your `.env.local` file (default: `http://localhost:8000`)
+- **Port already in use**: If port 3000 is occupied, Next.js will automatically use the next available port
+- **Dependencies issues**: Try deleting `node_modules` and `package-lock.json`, then run `npm install` again
