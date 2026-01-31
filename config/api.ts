@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   events: `${API_BASE_URL}/api/events`,
   incidents: `${API_BASE_URL}/api/incidents`,
   incidentById: (id: string) => `${API_BASE_URL}/api/incidents/${id}`,
+  generateIncident: `${API_BASE_URL}/api/incidents/from-events`,
   generatePostmortem: (id: string) => `${API_BASE_URL}/api/incidents/${id}/postmortem`,
   postmortems: `${API_BASE_URL}/api/postmortems`,
   postmortemById: (id: string) => `${API_BASE_URL}/api/postmortems/${id}`,

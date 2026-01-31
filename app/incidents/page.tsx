@@ -136,45 +136,33 @@ export default function IncidentsPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setFilter('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === 'all'
-                    ? 'text-white'
-                    : 'hover:opacity-80'
-                }`}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:opacity-80"
                 style={{
-                  backgroundColor: filter === 'all' ? 'var(--color-primary)' : 'transparent',
-                  color: filter === 'all' ? 'white' : 'var(--color-text-primary)',
-                  border: filter === 'all' ? 'none' : '1px solid var(--color-border-primary)',
+                  backgroundColor: 'transparent',
+                  color: 'var(--color-text-primary)',
+                  border: filter === 'all' ? '1px solid var(--color-accent)' : '1px solid transparent',
                 }}
               >
                 All
               </button>
               <button
                 onClick={() => setFilter('open')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === 'open'
-                    ? 'text-white'
-                    : 'hover:opacity-80'
-                }`}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:opacity-80"
                 style={{
-                  backgroundColor: filter === 'open' ? 'var(--color-primary)' : 'transparent',
-                  color: filter === 'open' ? 'white' : 'var(--color-text-primary)',
-                  border: filter === 'open' ? 'none' : '1px solid var(--color-border-primary)',
+                  backgroundColor: 'transparent',
+                  color: 'var(--color-text-primary)',
+                  border: filter === 'open' ? '1px solid var(--color-accent)' : '1px solid transparent',
                 }}
               >
                 Open
               </button>
               <button
                 onClick={() => setFilter('resolved')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === 'resolved'
-                    ? 'text-white'
-                    : 'hover:opacity-80'
-                }`}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:opacity-80"
                 style={{
-                  backgroundColor: filter === 'resolved' ? 'var(--color-primary)' : 'transparent',
-                  color: filter === 'resolved' ? 'white' : 'var(--color-text-primary)',
-                  border: filter === 'resolved' ? 'none' : '1px solid var(--color-border-primary)',
+                  backgroundColor: 'transparent',
+                  color: 'var(--color-text-primary)',
+                  border: filter === 'resolved' ? '1px solid var(--color-accent)' : '1px solid transparent',
                 }}
               >
                 Resolved

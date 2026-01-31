@@ -210,7 +210,7 @@ ${postmortem.prevention}
           <article className="space-y-8">
             {/* Summary */}
             <section>
-              <h2 className="text-xl font-semibold mb-3">Summary</h2>
+              <h2 className="text-xl font-semibold mb-3" style={{ textDecoration: 'underline', textDecorationColor: 'var(--color-accent)' }}>Summary</h2>
               <p className="leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
                 {postmortem.summary}
               </p>
@@ -218,7 +218,7 @@ ${postmortem.prevention}
 
             {/* Timeline */}
             <section>
-              <h2 className="text-xl font-semibold mb-3">Timeline</h2>
+              <h2 className="text-xl font-semibold mb-3" style={{ textDecoration: 'underline', textDecorationColor: 'var(--color-accent)' }}>Timeline</h2>
               <div 
                 className="rounded-lg p-5 border"
                 style={{
@@ -234,7 +234,7 @@ ${postmortem.prevention}
 
             {/* Impact */}
             <section>
-              <h2 className="text-xl font-semibold mb-3">Impact</h2>
+              <h2 className="text-xl font-semibold mb-3" style={{ textDecoration: 'underline', textDecorationColor: 'var(--color-accent)' }}>Impact</h2>
               <div 
                 className="rounded-lg p-5 border"
                 style={{
@@ -250,7 +250,7 @@ ${postmortem.prevention}
 
             {/* Root Cause */}
             <section>
-              <h2 className="text-xl font-semibold mb-3">Root Cause</h2>
+              <h2 className="text-xl font-semibold mb-3" style={{ textDecoration: 'underline', textDecorationColor: 'var(--color-accent)' }}>Root Cause</h2>
               <p className="leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
                 {postmortem.root_cause}
               </p>
@@ -258,25 +258,19 @@ ${postmortem.prevention}
 
             {/* Action Items */}
             <section>
-              <h2 className="text-xl font-semibold mb-3">Action Items</h2>
+              <h2 className="text-xl font-semibold mb-3" style={{ textDecoration: 'underline', textDecorationColor: 'var(--color-accent)' }}>Action Items</h2>
               {Array.isArray(postmortem.action_items) && postmortem.action_items.length > 0 ? (
                 <div className="space-y-2">
                   {postmortem.action_items.map((item, index) => (
                     <div
                       key={index}
-                      className="flex items-start gap-3 rounded-lg p-4 border"
+                      className="rounded-lg p-4 border"
                       style={{
                         backgroundColor: 'var(--color-bg-secondary)',
                         borderColor: 'var(--color-border-primary)',
                       }}
                     >
-                      <span 
-                        className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white"
-                        style={{ backgroundColor: 'var(--color-accent)' }}
-                      >
-                        {index + 1}
-                      </span>
-                      <p className="text-sm flex-1" style={{ color: 'var(--color-text-secondary)' }}>{item}</p>
+                      <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{item}</p>
                     </div>
                   ))}
                 </div>
@@ -287,7 +281,7 @@ ${postmortem.prevention}
 
             {/* Prevention */}
             <section>
-              <h2 className="text-xl font-semibold mb-3">Prevention</h2>
+              <h2 className="text-xl font-semibold mb-3" style={{ textDecoration: 'underline', textDecorationColor: 'var(--color-accent)' }}>Prevention</h2>
               <div 
                 className="rounded-lg p-5 border"
                 style={{

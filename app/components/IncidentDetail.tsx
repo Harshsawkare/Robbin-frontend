@@ -104,6 +104,7 @@ export function IncidentDetail({ incidentId }: IncidentDetailProps) {
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({}),
       });
 
       if (response.ok) {
@@ -173,7 +174,7 @@ export function IncidentDetail({ incidentId }: IncidentDetailProps) {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
                   backgroundColor: 'var(--color-accent)',
-                  color: 'white',
+                  color: 'black',
                 }}
                 onMouseEnter={(e) => {
                   if (!generatingPostmortem) {

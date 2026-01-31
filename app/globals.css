@@ -32,8 +32,8 @@
   --color-resolved-border: #bbf7d0;
   
   /* Accent */
-  --color-accent: #2563eb;
-  --color-accent-hover: #1d4ed8;
+  --color-accent: #D3FF5B;
+  --color-accent-hover: #c0f000;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -69,8 +69,8 @@
     --color-resolved-border: #1f3f35;
     
     /* Accent */
-    --color-accent: #3b82f6;
-    --color-accent-hover: #2563eb;
+    --color-accent: #D3FF5B;
+    --color-accent-hover: #c0f000;
   }
 }
 
