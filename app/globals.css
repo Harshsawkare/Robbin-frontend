@@ -32,7 +32,7 @@
   --color-resolved-border: #bbf7d0;
   
   /* Accent */
-  --color-accent: #D3FF5B;
+  --color-accent: lch(94.37% 79.71 117.09 / 0.355);
   --color-accent-hover: #c0f000;
 }
 

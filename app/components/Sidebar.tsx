@@ -5,6 +5,7 @@ import {
   Activity,
   FileText,
   Flame,
+  Home,
   Menu,
   ChevronLeft,
   ChevronDown,
@@ -12,9 +13,10 @@ import {
   Plus,
 } from 'lucide-react';
 // import { Settings as SettingsIcon } from 'lucide-react'; // Disabled for now
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
-type View = 'feed' | 'incidents' | 'incident-detail' | 'postmortems'; // | 'settings'; // Disabled for now
+type View = 'home' | 'feed' | 'incidents' | 'incident-detail' | 'postmortems'; // | 'settings'; // Disabled for now
 
 type App = {
   id: string;
@@ -50,7 +52,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const [newAppEnvironment, setNewAppEnvironment] = useState('Production');
 
   const navItems = [
-    { id: 'feed' as View, label: 'Live Feed', icon: Activity, path: '/' },
+    { id: 'home' as View, label: 'Home', icon: Home, path: '/' },
+    { id: 'feed' as View, label: 'Live Feed', icon: Activity, path: '/live-feed' },
     { id: 'incidents' as View, label: 'Incidents', icon: Flame, path: '/incidents' },
     { id: 'postmortems' as View, label: 'Postmortems', icon: FileText, path: '/postmortems' },
   ];
@@ -139,7 +142,12 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             {/* <div className="w-8 h-8 bg-[--color-accent] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">R</span>
             </div> */}
-            <span className="font-semibold text-lg">Robbin</span>
+            <Link
+              href="/"
+              className="font-semibold text-lg hover:opacity-80 transition-opacity text-[--color-text-primary]"
+            >
+              Robbin
+            </Link>
           </div>
         )}
         <button

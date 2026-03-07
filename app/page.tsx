@@ -1,7 +1,7 @@
 'use client';
 
-import { LiveFeed } from './components/LiveFeed';
+import { LandingPage } from './components/LandingPage';
 
 export default function Home() {
-  return <LiveFeed />;
+  return <LandingPage />;
 }
