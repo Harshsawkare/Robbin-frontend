@@ -149,6 +149,33 @@ code, pre {
   border-radius: 4px;
 }
 
+/* Landing page: horizontal scroll rows (infinite) */
+@keyframes scroll-row-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes scroll-row-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.scroll-row-left {
+  animation: scroll-row-left 40s linear infinite;
+}
+
+.scroll-row-right {
+  animation: scroll-row-right 40s linear infinite;
+}
+
 /* Card hover effect */
 .incident-card {
   transition: border-color 0.2s ease;

@@ -1,7 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import Image from 'next/image';
+
+import logoSvg from '../../assets/icon-neon-black.svg';
 
 const KEYWORDS = [
   'AI-Powered Monitoring',
@@ -21,139 +23,68 @@ const KEYWORDS = [
   'Performance Diagnostics',
 ];
 
-const DIRECTIONS = 8;
-const SPAWN_INTERVAL_MS = 300;
-const MAX_LIFETIME_MS = 8000;
-
-interface Particle {
-  id: number;
-  text: string;
-  angle: number;
-  birthTime: number;
-}
-
-function getAccentColor(): string {
-  if (typeof document === 'undefined') return '#D3FF5B';
-  const el = document.createElement('div');
-  el.style.color = 'var(--color-accent)';
-  document.body.appendChild(el);
-  const color = getComputedStyle(el).color;
-  document.body.removeChild(el);
-  return color || '#D3FF5B';
-}
-
 export function LandingPage() {
   const router = useRouter();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const sizeRef = useRef({ width: 0, height: 0 });
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (canvasRef.current) {
-        const dpr = window.devicePixelRatio || 1;
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        sizeRef.current = { width, height };
-        canvasRef.current.width = width * dpr;
-        canvasRef.current.height = height * dpr;
-        const ctx = canvasRef.current.getContext('2d');
-        if (ctx) ctx.scale(dpr, dpr);
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationFrameId: number;
-    let lastSpawnTime = 0;
-    let spawnCount = 0;
-    const particles: Particle[] = [];
-    let accentColor = getAccentColor();
-
-    const render = (timestamp: number) => {
-      const { width, height } = sizeRef.current;
-      const centerX = width / 2;
-      const centerY = height / 2;
-      const maxDist = Math.sqrt(centerX * centerX + centerY * centerY) * 1.2;
-
-      ctx.clearRect(0, 0, width, height);
-
-      if (timestamp - lastSpawnTime > SPAWN_INTERVAL_MS) {
-        const dirIndex = spawnCount % DIRECTIONS;
-        const angle = -Math.PI / 2 + dirIndex * (Math.PI / 4);
-        const keywordIndex = spawnCount % KEYWORDS.length;
-        particles.push({
-          id: spawnCount,
-          text: KEYWORDS[keywordIndex],
-          angle,
-          birthTime: timestamp,
-        });
-        spawnCount++;
-        lastSpawnTime = timestamp;
-      }
-
-      const activeParticles: Particle[] = [];
-      for (const p of particles) {
-        const age = timestamp - p.birthTime;
-        if (age >= MAX_LIFETIME_MS) continue;
-
-        activeParticles.push(p);
-        const progress = age / MAX_LIFETIME_MS;
-        const ease = Math.pow(progress, 2.5);
-        const currentRadius = ease * maxDist;
-
-        let alpha = 0;
-        const maxAlpha = 0.28;
-        if (progress < 0.1) {
-          alpha = (progress / 0.1) * maxAlpha;
-        } else if (progress > 0.8) {
-          alpha = (1 - (progress - 0.8) / 0.2) * maxAlpha;
-        } else {
-          alpha = maxAlpha;
-        }
-
-        if (alpha > 0.01) {
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = accentColor;
-          const fontSize = 12 + ease * 60;
-          ctx.font = `500 ${fontSize}px ui-sans-serif, system-ui, sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          const x = centerX + Math.cos(p.angle) * currentRadius;
-          const y = centerY + Math.sin(p.angle) * currentRadius;
-          ctx.fillText(p.text, x, y);
-        }
-      }
-
-      particles.length = 0;
-      particles.push(...activeParticles);
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    animationFrameId = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, []);
 
   return (
     <div
       className="relative min-h-screen flex flex-col"
       style={{ backgroundColor: 'var(--color-bg-primary)' }}
     >
-      {/* Canvas: words spawn from center and move outward in 8 directions */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 block w-full h-full z-0 pointer-events-none"
-        style={{ background: 'transparent' }}
+      {/* Two horizontal scrolling rows of grey labels (middle of screen, opposite directions) */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes landing-scroll-left {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        @keyframes landing-scroll-right {
+          from { transform: translateX(-50%); }
+          to { transform: translateX(0); }
+        }
+        .landing-scroll-left {
+          animation: landing-scroll-left 60s linear infinite;
+        }
+        .landing-scroll-right {
+          animation: landing-scroll-right 60s linear infinite;
+        }
+      `}} />
+      <div
+        className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-[1] pointer-events-none overflow-hidden"
         aria-hidden
-      />
+      >
+        <div className="overflow-hidden whitespace-nowrap w-full">
+          <div
+            className="landing-scroll-left inline-flex gap-12 will-change-transform"
+            style={{ width: 'max-content' }}
+          >
+            {[...KEYWORDS, ...KEYWORDS].map((label, i) => (
+              <span
+                key={`row1-${i}`}
+                className="text-2xl font-medium tracking-wide"
+                style={{ color: 'var(--color-text-tertiary)' }}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="overflow-hidden whitespace-nowrap w-full">
+          <div
+            className="landing-scroll-right inline-flex gap-12 will-change-transform"
+            style={{ width: 'max-content' }}
+          >
+            {[...KEYWORDS, ...KEYWORDS].map((label, i) => (
+              <span
+                key={`row2-${i}`}
+                className="text-2xl font-medium tracking-wide"
+                style={{ color: 'var(--color-text-tertiary)' }}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Gradient circle: black at center, transparent at edges; above animation, behind text and buttons */}
       <div
@@ -171,40 +102,71 @@ export function LandingPage() {
         className="relative z-10 flex-shrink-0 flex items-center justify-between h-14 px-4 md:px-6 border-0"
         style={{ backgroundColor: 'transparent' }}
       >
-        <span
-          className="font-semibold text-[20px]"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
-          Robbin
-        </span>
+        <Image
+          src={logoSvg}
+          alt="Robbin"
+          width={32}
+          height={32}
+          className="h-8 w-8 flex-shrink-0"
+        />
         <button
           type="button"
           onClick={() => router.push('/live-feed')}
-          className="px-4 py-2 rounded-lg font-medium text-[14px] transition-opacity hover:opacity-90"
-          style={{
-            backgroundColor: 'var(--color-accent)',
-            color: '#0a0a0b',
-          }}
+          className="px-4 py-2 rounded-lg font-medium text-[14px] transition-colors bg-[var(--color-accent)] text-[#0a0a0b] hover:bg-white hover:text-black"
         >
           Join Now
         </button>
       </header>
 
-      {/* Main content */}
+      {/* Main content: 7 layered "Robbin" titles, center-aligned */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center overflow-hidden">
-        <div className="flex flex-col items-center justify-center text-center px-6">
+        <div className="relative w-full flex items-center justify-center" style={{ minHeight: '320px' }}>
+          {/* Layer 3: 2 titles, white 15%, 120px (back) */}
           <h1
-            className="text-4xl md:text-5xl font-bold tracking-tight mb-2"
-            style={{ color: 'var(--color-text-primary)' }}
+            className="absolute left-1/2 top-1/2 font-medium italic tracking-tight whitespace-nowrap pointer-events-none"
+            style={{ fontSize: 60, color: 'rgba(255,255,255,0.15)', transform: 'translate(-50%, -50%) translate(0%, -180%)' }}
           >
             Robbin
           </h1>
-          <p
-            className="text-base md:text-lg max-w-md mb-8"
-            style={{ color: 'var(--color-text-secondary)' }}
+          <h1
+            className="absolute left-1/2 top-1/2 font-medium italic tracking-tight whitespace-nowrap pointer-events-none"
+            style={{ fontSize: 60, color: 'rgba(255,255,255,0.15)', transform: 'translate(-50%, -50%) translate(0%, 180%)' }}
           >
-            AI-powered incident analysis & post-mortem generator
-          </p>
+            Robbin
+          </h1>
+          {/* Layer 2: 2 titles, white 25%, 140px */}
+          <h1
+            className="absolute left-1/2 top-1/2 font-medium italic tracking-tight whitespace-nowrap pointer-events-none"
+            style={{ fontSize: 80, color: 'rgba(255,255,255,0.25)', transform: 'translate(-50%, -50%) translate(0%, -100%)' }}
+          >
+            Robbin
+          </h1>
+          <h1
+            className="absolute left-1/2 top-1/2 font-medium italic tracking-tight whitespace-nowrap pointer-events-none"
+            style={{ fontSize: 80, color: 'rgba(255,255,255,0.25)', transform: 'translate(-50%, -50%) translate(0%, 100%)' }}
+          >
+            Robbin
+          </h1>
+          {/* Layer 1: 2 titles, white 35%, 160px — above-left, below-right */}
+          <h1
+            className="absolute left-1/2 top-1/2 font-medium italic tracking-tight whitespace-nowrap pointer-events-none"
+            style={{ fontSize: 100, color: 'rgba(255,255,255,0.35)', transform: 'translate(-50%, -50%) translate(0%, -50%)' }}
+          >
+            Robbin
+          </h1>
+          <h1
+            className="absolute left-1/2 top-1/2 font-medium italic tracking-tight whitespace-nowrap pointer-events-none"
+            style={{ fontSize: 100, color: 'rgba(255,255,255,0.35)', transform: 'translate(-50%, -50%) translate(0%, 50%)' }}
+          >
+            Robbin
+          </h1>
+          {/* Center: neon, 180px (front) */}
+          <h1
+            className="absolute left-1/2 top-1/2 font-medium italic tracking-tight whitespace-nowrap -translate-x-1/2 -translate-y-1/2"
+            style={{ fontSize: 120, color: 'var(--color-accent)' }}
+          >
+            Robbin
+          </h1>
         </div>
       </div>
     </div>
