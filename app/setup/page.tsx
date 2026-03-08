@@ -1,44 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function ProjectSetup() {
   const router = useRouter();
-  const [projectName, setProjectName] = useState('');
+  const [appName, setAppName] = useState('');
   const [environment, setEnvironment] = useState('production');
-  const [copied, setCopied] = useState(false);
-  const apiKey = 'rb_live_4f8a9b2c1d3e5f6g7h8i9j0k1l2m3n4o';
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(apiKey);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const codeSnippet = `// Install Robbin SDK
-npm install @robbin/node
-
-// Initialize in your app
-import { Robbin } from '@robbin/node';
-
-const robbin = new Robbin({
-  apiKey: '${apiKey}',
-  environment: '${environment}'
-});
-
-// Send an event
-try {
-  // Your code here
-} catch (error) {
-  robbin.captureError(error, {
-    context: {
-      user: req.user?.id,
-      endpoint: req.path
-    }
-  });
-}`;
+  const [firebaseProjectId, setFirebaseProjectId] = useState('');
+  const [firebaseApiKey, setFirebaseApiKey] = useState('');
+  const [firebaseAppId, setFirebaseAppId] = useState('');
+  const [firebaseAuthDomain, setFirebaseAuthDomain] = useState('');
+  const [firebaseStorageBucket, setFirebaseStorageBucket] = useState('');
+  const [firebaseMessagingSenderId, setFirebaseMessagingSenderId] = useState('');
+  const [llmApiKey, setLlmApiKey] = useState('');
 
   return (
     <div className="max-w-3xl mx-auto p-12" style={{ backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-primary)' }}>
@@ -50,20 +25,21 @@ try {
       </div>
 
       <div className="space-y-6">
-        {/* Project Name */}
-        <div 
+        {/* App name */}
+        <div
           className="rounded-xl p-6 border"
           style={{
             backgroundColor: 'var(--color-bg-secondary)',
             borderColor: 'var(--color-border-primary)',
           }}
         >
-          <label className="block text-sm font-medium mb-2">Project Name</label>
+          <label className="block text-sm font-medium mb-2">App name <span style={{ color: 'var(--color-accent)' }}>*</span></label>
           <input
             type="text"
-            value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
+            value={appName}
+            onChange={(e) => setAppName(e.target.value)}
             placeholder="my-awesome-app"
+            required
             className="w-full px-4 py-2.5 rounded-lg focus:outline-none focus:ring-2 border"
             style={{
               backgroundColor: 'var(--color-bg-tertiary)',
@@ -80,7 +56,7 @@ try {
             borderColor: 'var(--color-border-primary)',
           }}
         >
-          <label className="block text-sm font-medium mb-3">Environment</label>
+          <label className="block text-sm font-medium mb-3">Environment <span style={{ color: 'var(--color-accent)' }}>*</span></label>
           <div className="flex gap-3">
             {['production', 'staging', 'development'].map((env) => (
               <button
@@ -92,7 +68,7 @@ try {
                 style={{
                   backgroundColor: environment === env ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
                   borderColor: environment === env ? 'var(--color-accent)' : 'var(--color-border-primary)',
-                  color: environment === env ? 'white' : 'var(--color-text-primary)',
+                  color: environment === env ? 'black' : 'var(--color-text-primary)',
                 }}
                 onMouseEnter={(e) => {
                   if (environment !== env) {
@@ -111,101 +87,164 @@ try {
           </div>
         </div>
 
-        {/* API Key */}
-        <div 
+        {/* Firebase Firestore config */}
+        <div
           className="rounded-xl p-6 border"
           style={{
             backgroundColor: 'var(--color-bg-secondary)',
             borderColor: 'var(--color-border-primary)',
           }}
         >
-          <label className="block text-sm font-medium mb-2">API Key</label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={apiKey}
-              readOnly
-              className="flex-1 px-4 py-2.5 rounded-lg font-mono text-sm border"
-              style={{
-                backgroundColor: 'var(--color-bg-tertiary)',
-                borderColor: 'var(--color-border-primary)',
-              }}
-            />
-            <button
-              onClick={handleCopy}
-              className="px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2 text-white"
-              style={{ backgroundColor: 'var(--color-accent)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-accent)';
-              }}
-            >
-              {copied ? <Check size={16} /> : <Copy size={16} />}
-              {copied ? 'Copied!' : 'Copy'}
-            </button>
-          </div>
-          <p className="text-xs mt-2" style={{ color: 'var(--color-text-tertiary)' }}>
-            Keep this key secure. You can regenerate it anytime in Settings.
+          <label className="block text-sm font-medium mb-1">Database</label>
+          <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
+            From Firebase Console → Project settings → Your apps. Required for Firestore.
           </p>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--color-text-secondary)' }}>
+                Project ID <span style={{ color: 'var(--color-accent)' }}>*</span>
+              </label>
+              <input
+                type="text"
+                value={firebaseProjectId}
+                onChange={(e) => setFirebaseProjectId(e.target.value)}
+                placeholder="my-project-id"
+                required
+                className="w-full px-4 py-2.5 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 border"
+                style={{
+                  backgroundColor: 'var(--color-bg-tertiary)',
+                  borderColor: 'var(--color-border-primary)',
+                }}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--color-text-secondary)' }}>
+                API Key <span style={{ color: 'var(--color-accent)' }}>*</span>
+              </label>
+              <input
+                type="text"
+                value={firebaseApiKey}
+                onChange={(e) => setFirebaseApiKey(e.target.value)}
+                placeholder="AIza..."
+                required
+                className="w-full px-4 py-2.5 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 border"
+                style={{
+                  backgroundColor: 'var(--color-bg-tertiary)',
+                  borderColor: 'var(--color-border-primary)',
+                }}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--color-text-secondary)' }}>
+                App ID <span style={{ color: 'var(--color-accent)' }}>*</span>
+              </label>
+              <input
+                type="text"
+                value={firebaseAppId}
+                onChange={(e) => setFirebaseAppId(e.target.value)}
+                placeholder="1:123456789:web:abc..."
+                required
+                className="w-full px-4 py-2.5 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 border"
+                style={{
+                  backgroundColor: 'var(--color-bg-tertiary)',
+                  borderColor: 'var(--color-border-primary)',
+                }}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--color-text-secondary)' }}>
+                Auth Domain (optional)
+              </label>
+              <input
+                type="text"
+                value={firebaseAuthDomain}
+                onChange={(e) => setFirebaseAuthDomain(e.target.value)}
+                placeholder="my-project.firebaseapp.com"
+                className="w-full px-4 py-2.5 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 border"
+                style={{
+                  backgroundColor: 'var(--color-bg-tertiary)',
+                  borderColor: 'var(--color-border-primary)',
+                }}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--color-text-secondary)' }}>
+                Storage Bucket (optional)
+              </label>
+              <input
+                type="text"
+                value={firebaseStorageBucket}
+                onChange={(e) => setFirebaseStorageBucket(e.target.value)}
+                placeholder="my-project.appspot.com"
+                className="w-full px-4 py-2.5 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 border"
+                style={{
+                  backgroundColor: 'var(--color-bg-tertiary)',
+                  borderColor: 'var(--color-border-primary)',
+                }}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--color-text-secondary)' }}>
+                Messaging Sender ID (optional)
+              </label>
+              <input
+                type="text"
+                value={firebaseMessagingSenderId}
+                onChange={(e) => setFirebaseMessagingSenderId(e.target.value)}
+                placeholder="123456789012"
+                className="w-full px-4 py-2.5 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 border"
+                style={{
+                  backgroundColor: 'var(--color-bg-tertiary)',
+                  borderColor: 'var(--color-border-primary)',
+                }}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Code Snippet */}
-        <div 
+        {/* LLM API Key */}
+        <div
           className="rounded-xl p-6 border"
           style={{
             backgroundColor: 'var(--color-bg-secondary)',
             borderColor: 'var(--color-border-primary)',
           }}
         >
-          <label className="block text-sm font-medium mb-3">Quick Start</label>
-          <pre 
-            className="rounded-lg p-4 overflow-x-auto text-xs border"
+          <label className="block text-sm font-medium mb-2">LLM API Key <span style={{ color: 'var(--color-accent)' }}>*</span></label>
+          <input
+            type="password"
+            value={llmApiKey}
+            onChange={(e) => setLlmApiKey(e.target.value)}
+            placeholder="sk-..."
+            required
+            className="w-full px-4 py-2.5 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 border"
             style={{
-              backgroundColor: 'var(--color-bg-primary)',
+              backgroundColor: 'var(--color-bg-tertiary)',
               borderColor: 'var(--color-border-primary)',
             }}
-          >
-            <code>{codeSnippet}</code>
-          </pre>
+          />
+          <p className="text-xs mt-2" style={{ color: 'var(--color-text-tertiary)' }}>
+            Used for AI-generated content (e.g. postmortems). Keep this key secure.
+          </p>
         </div>
 
         {/* Actions */}
         <div className="flex gap-3">
           <button
             onClick={() => router.push('/')}
-            disabled={!projectName}
-            className="px-6 py-3 rounded-lg font-medium transition-colors text-white disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: 'var(--color-accent)' }}
+            disabled={!appName || !firebaseProjectId || !firebaseApiKey || !firebaseAppId || !llmApiKey}
+            className="px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: 'var(--color-accent)', color: 'black' }}
             onMouseEnter={(e) => {
-              if (projectName) {
+              if (appName && firebaseProjectId && firebaseApiKey && firebaseAppId && llmApiKey) {
                 e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
               }
             }}
             onMouseLeave={(e) => {
-              if (projectName) {
-                e.currentTarget.style.backgroundColor = 'var(--color-accent)';
-              }
+              e.currentTarget.style.backgroundColor = 'var(--color-accent)';
             }}
           >
-            Create Project
-          </button>
-          <button
-            onClick={() => router.push('/')}
-            className="px-6 py-3 rounded-lg font-medium transition-colors border"
-            style={{
-              backgroundColor: 'var(--color-bg-tertiary)',
-              borderColor: 'var(--color-border-primary)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
-            }}
-          >
-            Skip for now
+            Save & continue
           </button>
         </div>
       </div>

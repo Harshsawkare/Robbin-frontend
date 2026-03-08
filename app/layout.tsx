@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Robbin - Incident Management",
+  title: "Robbin - AI powered observability",
   description: "Incident management system for tracking and resolving issues",
 };
 
